@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Labor Result</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --muted:#94a3b8;
+      --primary:#3b82f6; --success:#22c55e; --warning:#f59e0b; --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Segoe UI",system-ui,Arial;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1100px;margin:40px auto;padding:0 16px}
+    .header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .logo{width:40px;height:40px;border-radius:10px;background:var(--primary);display:grid;place-items:center;color:#fff;font-weight:700;box-shadow:0 8px 24px rgba(59,130,246,.5)}
+    .title{font-size:22px;font-weight:700}
+    .subtitle{color:var(--muted);font-size:14px}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+    .card{background:var(--card);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.6);padding:22px;border:1px solid #334155}
+    .card h2{margin:0 0 14px 0;font-size:18px;border-bottom:1px dashed #475569;padding-bottom:8px}
+    .field{margin-bottom:14px}
+    .label{font-size:13px;color:var(--muted);margin-bottom:6px;display:block}
+    .input{width:100%;padding:12px;border:1px solid #475569;border-radius:10px;outline:0;background:#0f172a;color:var(--text);font-size:15px}
+    .input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.4)}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{padding:10px 16px;border:0;border-radius:10px;font-weight:700;cursor:pointer;transition:transform .08s ease, box-shadow .2s ease}
+    .btn:active{transform:scale(.97)}
+    .btn-primary{background:var(--primary);color:#fff;box-shadow:0 6px 16px rgba(59,130,246,.5)}
+    .btn-secondary{background:#334155;color:#f1f5f9}
+    .helper{font-size:12px;color:var(--muted);margin-top:6px}
+    .status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px;margin:8px 0}
+    .status.pending{background:#1e293b;color:var(--warning);border:1px solid #f59e0b}
+    .status.pass{background:#1e293b;color:var(--success);border:1px solid #22c55e}
+    .status.fail{background:#1e293b;color:var(--danger);border:1px solid #ef4444}
+    .kv{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #475569}
+    .kv:last-child{border-bottom:0}
+    .k{color:var(--muted);font-size:13px}
+    .v{font-weight:600}
+    .actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+    .hidden{display:none}
+    .alert{margin-top:10px;padding:10px;border-radius:10px;background:#3f3f46;color:#fff}
+    .loading{opacity:.7;pointer-events:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="logo">LR</div>
+      <div>
+        <div class="title">Labor Result</div>
+        <div class="subtitle">Labor Result</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: Form -->
+      <div class="card">
+        <h2>তথ্য দিন</h2>
+        <form id="verifyForm">
+          <div class="field">
+            <label class="label">পাসপোর্ট নম্বর</label>
+            <input id="passport" class="input" type="text" placeholder="উদা: N1234567" required />
+          </div>
+          <div class="field">
+            <label class="label">পেশার কোড</label>
+            <input id="occupation" class="input" type="text" placeholder="উদা: 12345" required />
+          </div>
+          <div class="field">
+            <label class="label">জাতীয়তা কোড</label>
+            <input id="nationality" class="input" type="text" placeholder="উদা: 102" required />
+          </div>
+          <div class="row">
+            <button type="submit" class="btn btn-primary" id="verifyBtn">Verify</button>
+            <button type="reset" class="btn btn-secondary" id="resetBtn">Reset</button>
+          </div>
+          <div id="alertBox" class="alert hidden"></div>
+          <div class="helper">Verify চাপলে একই পেজে ফলাফল কার্ড দেখা যাবে।</div>
+        </form>
+      </div>
+
+      <!-- Right: Result Card -->
+      <div id="resultCard" class="card hidden">
+        <h2>ফলাফল</h2>
+        <div id="statusChip" class="status pending">⏳ ফলাফল অপেক্ষমাণ</div>
+        <div class="kv"><div class="k">পাসপোর্ট নম্বর</div><div class="v" id="r_passport">—</div></div>
+        <div class="kv"><div class="k">জাতীয়তা কোড</div><div class="v" id="r_nationality">—</div></div>
+        <div class="kv"><div class="k">পেশার কোড</div><div class="v" id="r_occupation">—</div></div>
+        <div class="kv"><div class="k">পরীক্ষার তারিখ</div><div class="v" id="r_exam_date">—</div></div>
+        <div class="kv"><div class="k">পরীক্ষা কেন্দ্র</div><div class="v" id="r_center">—</div></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="window.print()">প্রিন্ট</button>
+          <button class="btn btn-secondary" onclick="copyStatus()">কপি</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('verifyForm');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const card = document.getElementById('resultCard');
+    const statusChip = document.getElementById('statusChip');
+    const alertBox = document.getElementById('alertBox');
+
+    function showAlert(msg){
+      alertBox.textContent = msg;
+      alertBox.classList.remove('hidden');
+    }
+    function hideAlert(){
+      alertBox.classList.add('hidden');
+      alertBox.textContent = '';
+    }
+
+    function setStatus(resultText){
+      const r = (resultText || 'unknown').toLowerCase();
+      statusChip.className = 'status';
+      if (r.includes('pending')){
+        statusChip.classList.add('pending');
+        statusChip.textContent = '⏳ ফলাফল অপেক্ষমাণ';
+      } else if (r.includes('pass')){
+        statusChip.classList.add('pass');
+        statusChip.textContent = '✅ পাশ করেছেন';
+      } else if (r.includes('fail')){
+        statusChip.classList.add('fail');
+        statusChip.textContent = '❌ অকৃতকার্য';
+      } else {
+        statusChip.classList.add('fail');
+        statusChip.textContent = '❌ ফলাফল পাওয়া যায়নি';
+      }
+    }
+
+    function copyStatus(){
+      const text = statusChip.textContent.trim();
+      navigator.clipboard.writeText(text).then(()=>showAlert('ফলাফল কপি হয়েছে!'));
+      setTimeout(hideAlert, 1500);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();           // ফর্ম সাবমিটে রিলোড বন্ধ
+      hideAlert();
+
+      const passport = document.getElementById('passport').value.trim();
+      const occupation = document.getElementById('occupation').value.trim();
+      const nationality = document.getElementById('nationality').value.trim();
+
+      if(!passport || !occupation || !nationality){
+        showAlert('সব ফিল্ড পূরণ করুন।');
+        return;
+      }
+
+      // লোডিং স্টেট
+      verifyBtn.classList.add('loading');
+      verifyBtn.textContent = 'Verifying...';
+
+      try {
+        // যদি সার্ভার 5001/অন্য পোর্টে চলে, origin দিয়ে অ্যাবসোলিউট URL ব্যবহার করুন:
+        // const origin = window.location.origin;
+        // const res = await fetch(`${origin}/result?...`);
+
+        const res = await fetch(`/result?passport_number=${encodeURIComponent(passport)}&occupation_key=${encodeURIComponent(occupation)}&nationality_id=${encodeURIComponent(nationality)}`);
+        const data = await res.json();
+
+        if (data.error){
+          showAlert('API Error: ' + data.error);
+          card.classList.add('hidden');
+        } else {
+          document.getElementById('r_passport').textContent = passport;
+          document.getElementById('r_occupation').textContent = occupation;
+          document.getElementById('r_nationality').textContent = nationality;
+          document.getElementById('r_exam_date').textContent = data.exam_date || '—';
+          document.getElementById('r_center').textContent = data.test_center_name || '—';
+          setStatus(data.exam_result);
+          card.classList.remove('hidden');   // কার্ড দেখাও
+        }
+      } catch (e) {
+        showAlert('ফেচ ব্যর্থ: ' + e);
+      } finally {
+        verifyBtn.classList.remove('loading');
+        verifyBtn.textContent = 'Verify';
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      hideAlert();
+      setStatus('pending');
+      document.getElementById('r_passport').textContent = '—';
+      document.getElementById('r_occupation').textContent = '—';
+      document.getElementById('r_nationality').textContent = '—';
+      document.getElementById('r_exam_date').textContent = '—';
+      document.getElementById('r_center').textContent = '—';
+      card.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>
