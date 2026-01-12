@@ -32,11 +32,20 @@ def result():
 
     # নিরাপত্তার জন্য প্রত্যাশিত কী না থাকলে ডিফল্ট দিয়ে দিচ্ছি
     return jsonify({
-        "exam_result": data.get("exam_result"),
-        "exam_date": data.get("exam_date"),
-        "test_center_name": data.get("test_center_name"),
+        "exam_result": data.get("exam_result", "N/A"),
+        "exam_date": data.get("exam_date", "N/A"),
+        "test_center_name": data.get("test_center_name", "N/A"),
     })
 
+# Error handler যাতে সবসময় JSON ফেরত দেয়
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Not found"}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({"error": "Internal server error"}), 500
+
 if __name__ == "__main__":
-    # 5000 ব্যস্ত থাকলে 5001 ব্যবহার করতে পারেন
-    app.run(host="0.0.0.0", port=5000)
+    # লোকাল রান করার সময়
+    app.run(host="0.0.0.0", port=5000, debug=True)
